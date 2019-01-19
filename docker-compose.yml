@@ -1,0 +1,51 @@
+version: '3.1'
+
+networks:
+  front-tier:
+    driver: bridge
+
+  back-tier:
+    driver: bridge
+
+
+services:
+
+  prometheus:
+    image: prom/prometheus:v2.6.0
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+      - ./prometheus/data:/prometheus
+    command:      
+      - '--config.file=/etc/prometheus/prometheus.yaml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    ports:
+      - 9090:9090
+    networks:
+      - back-tier
+      - front-tier
+  
+  alertmanager:
+    image: prom/alertmanager
+    ports:
+      - 9093:9093
+    networks:
+      - back-tier
+    command:
+      - '--storage.path=/alertmanager'
+
+  influxdb:
+    image: influxdb:1.7.3-alpine
+    ports:
+      - 8086:8086
+      - 8083:8083
+    networks:
+      - back-tier
+    # environment: 
+    #   - INFLUXDB_DB=prometheus 
+    volumes:
+      - ./influxDB/influxdb.conf:/etc/influxdb/influxdb.conf
+      - ./influxDB/data:/var/lib/influxdb
+    command: 
+      - '-config=/etc/influxdb/influxdb.conf'

@@ -1,0 +1,20 @@
+version: '3.1'
+
+networks:
+  front-tier:
+    external:
+      name: prometheus-influxdb_back-tier
+
+services:
+
+  chronograf:
+    image: chronograf:1.7.7-alpine
+    volumes:
+      - ./data:/var/lib/chronograf
+    command:      
+      - '--influxdb-url=http://influxdb:8086'
+
+    ports:
+      - 8888:8888
+    networks:
+      - front-tier
